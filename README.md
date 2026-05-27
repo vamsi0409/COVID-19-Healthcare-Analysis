@@ -49,13 +49,14 @@ pandemic before treatments improved.
 
 ## SQL Analysis
 I wrote 8 SQL queries to extract healthcare insights:
-- National summary statistics
-- Top 10 states by cases and deaths
-- States with highest fatality rates
-- Peak hospitalization by state
-- Monthly new cases trend
-- Testing vs positivity rate analysis
-- Daily average new cases by state
+- National Summary
+- Top 10 States by Cases
+- Top 10 States by Deaths
+- Highest Fatality Rate
+- Peak Hospitalization
+- Monthly Trend
+- Testing vs Positivity
+- Daily Average New Cases
 
 ## Tools Used
 - Python (Pandas, NumPy, Matplotlib, Seaborn)
