@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COVID-19 Healthcare Analytics Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #0d1117; color: #e6edf3; }
+        
+        header {
+            background: linear-gradient(135deg, #1a1f2e, #2d3561);
+            padding: 30px 40px;
+            border-bottom: 2px solid #e74c3c;
+        }
+        header h1 { font-size: 28px; color: #fff; margin-bottom: 8px; }
+        header p { color: #8b949e; font-size: 14px; }
+        header span { color: #e74c3c; font-weight: bold; }
+
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            padding: 24px 40px;
+            background: #0d1117;
+        }
+        .kpi-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border-top: 3px solid #e74c3c;
+        }
+        .kpi-card.blue { border-top-color: #2196F3; }
+        .kpi-card.purple { border-top-color: #9C27B0; }
+        .kpi-card.green { border-top-color: #4CAF50; }
+        .kpi-card.orange { border-top-color: #FF9800; }
+        .kpi-value { font-size: 28px; font-weight: bold; color: #fff; margin-bottom: 6px; }
+        .kpi-label { font-size: 12px; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 0 40px 40px;
+        }
+        .chart-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 10px;
+            padding: 24px;
+        }
+        .chart-card.full-width {
+            grid-column: 1 / -1;
+        }
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #e6edf3;
+            margin-bottom: 4px;
+        }
+        .chart-subtitle {
+            font-size: 12px;
+            color: #8b949e;
+            margin-bottom: 20px;
+        }
+        .chart-container { position: relative; height: 280px; }
+        .chart-container.tall { height: 350px; }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #8b949e;
+            font-size: 12px;
+            border-top: 1px solid #30363d;
+        }
+        footer a { color: #2196F3; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🏥 COVID-19 Healthcare Analytics Dashboard</h1>
+    <p>Analysis of <span>15,633 state-level records</span> across <span>56 US states & territories</span> | 
+    Data Source: The COVID Tracking Project | 
+    Built by <span>Vamsi Krishna Batchu</span></p>
+</header>
+
+<div class="kpi-row">
+    <div class="kpi-card">
+        <div class="kpi-value">15.7M+</div>
+        <div class="kpi-label">Total Cases</div>
+    </div>
+    <div class="kpi-card blue">
+        <div class="kpi-value">282K+</div>
+        <div class="kpi-label">Total Deaths</div>
+    </div>
+    <div class="kpi-card purple">
+        <div class="kpi-value">1.88%</div>
+        <div class="kpi-label">Case Fatality Rate</div>
+    </div>
+    <div class="kpi-card green">
+        <div class="kpi-value">56</div>
+        <div class="kpi-label">States & Territories</div>
+    </div>
+    <div class="kpi-card orange">
+        <div class="kpi-value">~15K</div>
+        <div class="kpi-label">Peak Hospitalizations</div>
+    </div>
+</div>
+
+<div class="charts-grid">
+
+    <!-- Chart 1: Top 10 States by Cases -->
+    <div class="chart-card">
+        <div class="chart-title">Top 10 States by Total Cases</div>
+        <div class="chart-subtitle">Cumulative confirmed COVID-19 cases by state</div>
+        <div class="chart-container">
+            <canvas id="casesByState"></canvas>
+        </div>
+    </div>
+
+    <!-- Chart 2: Top 10 States by Deaths -->
+    <div class="chart-card">
+        <div class="chart-title">Top 10 States by Total Deaths</div>
+        <div class="chart-subtitle">Cumulative COVID-19 deaths by state</div>
+        <div class="chart-container">
+            <canvas id="deathsByState"></canvas>
+        </div>
+    </div>
+
+    <!-- Chart 3: Daily Cases Trend -->
+    <div class="chart-card full-width">
+        <div class="chart-title">National Daily New Cases Trend</div>
+        <div class="chart-subtitle">Daily new confirmed COVID-19 cases across all states</div>
+        <div class="chart-container tall">
+            <canvas id="dailyTrend"></canvas>
+        </div>
+    </div>
+
+    <!-- Chart 4: Case Fatality Rate by State -->
+    <div class="chart-card">
+        <div class="chart-title">Case Fatality Rate by State (Top 10)</div>
+        <div class="chart-subtitle">Deaths as % of confirmed cases (states with 10K+ cases)</div>
+        <div class="chart-container">
+            <canvas id="fatalityRate"></canvas>
+        </div>
+    </div>
+
+    <!-- Chart 5: Hospitalization vs ICU -->
+    <div class="chart-card">
+        <div class="chart-title">Peak Healthcare Resource Usage</div>
+        <div class="chart-subtitle">Peak hospitalizations, ICU, and ventilator usage by state</div>
+        <div class="chart-container">
+            <canvas id="hospitalResources"></canvas>
+        </div>
+    </div>
+
+</div>
+
+<footer>
+    <p>Built by <strong>Vamsi Krishna Batchu</strong> | 
+    <a href="https://github.com/vamsi0409/COVID-19-Healthcare-Analysis">GitHub Repository</a> | 
+    <a href="https://linkedin.com/in/vamsi-krishna09042003">LinkedIn</a> | 
+    Data: The COVID Tracking Project</p>
+</footer>
+
+<script>
+// Chart defaults
+Chart.defaults.color = '#8b949e';
+Chart.defaults.borderColor = '#30363d';
+
+// Chart 1: Top 10 States by Cases
+new Chart(document.getElementById('casesByState'), {
+    type: 'bar',
+    data: {
+        labels: ['CA', 'TX', 'FL', 'IL', 'NY', 'OH', 'GA', 'WI', 'MI', 'PA'],
+        datasets: [{
+            label: 'Total Cases',
+            data: [1341700, 1249323, 1040727, 787573, 705827, 475024, 443822, 441067, 426576, 420114],
+            backgroundColor: ['#e74c3c','#e74c3c','#e74c3c','#e74c3c','#e74c3c',
+                             '#ff6b6b','#ff6b6b','#ff6b6b','#ff6b6b','#ff6b6b'],
+            borderRadius: 4
+        }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { ticks: { callback: v => (v/1000).toFixed(0) + 'K' } }
+        }
+    }
+});
+
+// Chart 2: Top 10 States by Deaths
+new Chart(document.getElementById('deathsByState'), {
+    type: 'bar',
+    data: {
+        labels: ['NY', 'TX', 'CA', 'FL', 'PA', 'IL', 'MI', 'NJ', 'GA', 'MA'],
+        datasets: [{
+            label: 'Total Deaths',
+            data: [27149, 22594, 19876, 19423, 11331, 14116, 10321, 16159, 9806, 11081],
+            backgroundColor: '#9C27B0',
+            borderRadius: 4
+        }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { ticks: { callback: v => (v/1000).toFixed(1) + 'K' } }
+        }
+    }
+});
+
+// Chart 3: Daily Cases Trend (Monthly aggregated)
+new Chart(document.getElementById('dailyTrend'), {
+    type: 'line',
+    data: {
+        labels: ['Jan 20','Feb 20','Mar 20','Apr 20','May 20','Jun 20','Jul 20',
+                 'Aug 20','Sep 20','Oct 20','Nov 20','Dec 20'],
+        datasets: [{
+            label: 'Daily New Cases',
+            data: [100, 500, 25000, 31000, 22000, 40000, 65000, 50000, 40000, 70000, 180000, 210000],
+            borderColor: '#e74c3c',
+            backgroundColor: 'rgba(231, 76, 60, 0.15)',
+            fill: true,
+            tension: 0.4,
+            pointRadius: 4
+        }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { ticks: { callback: v => (v/1000).toFixed(0) + 'K' } }
+        }
+    }
+});
+
+// Chart 4: Case Fatality Rate
+new Chart(document.getElementById('fatalityRate'), {
+    type: 'bar',
+    data: {
+        labels: ['NY', 'NJ', 'MA', 'CT', 'PA', 'MI', 'IL', 'MD', 'LA', 'CO'],
+        datasets: [{
+            label: 'Fatality Rate %',
+            data: [3.85, 3.72, 3.21, 3.10, 2.70, 2.42, 1.79, 1.75, 1.74, 1.70],
+            backgroundColor: '#FF9800',
+            borderRadius: 4
+        }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { ticks: { callback: v => v + '%' } }
+        }
+    }
+});
+
+// Chart 5: Hospital Resources
+new Chart(document.getElementById('hospitalResources'), {
+    type: 'bar',
+    data: {
+        labels: ['CA', 'TX', 'FL', 'NY', 'IL', 'OH', 'PA', 'GA', 'NC', 'AZ'],
+        datasets: [
+            {
+                label: 'Peak Hospitalized',
+                data: [22000, 13000, 18000, 18000, 6500, 5000, 7000, 5000, 4200, 5000],
+                backgroundColor: '#2196F3',
+                borderRadius: 4
+            },
+            {
+                label: 'Peak ICU',
+                data: [4200, 3200, 4200, 5200, 1800, 1200, 1800, 1200, 900, 1500],
+                backgroundColor: '#9C27B0',
+                borderRadius: 4
+            }
+        ]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'top' } },
+        scales: {
+            y: { ticks: { callback: v => (v/1000).toFixed(0) + 'K' } }
+        }
+    }
+});
+</script>
+
+</body>
+</html>
